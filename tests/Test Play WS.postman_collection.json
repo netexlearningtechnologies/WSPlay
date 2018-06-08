@@ -1,0 +1,576 @@
+{
+	"info": {
+		"_postman_id": "71db118a-3216-4156-a211-5a67ce5d81dd",
+		"name": "Test Play WS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "scoreboard",
+			"description": "",
+			"item": [
+				{
+					"name": "login NO admin - Sin cursos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0dfa5102-285f-4e65-91ae-240dab876db6",
+								"type": "text/javascript",
+								"exec": [
+									"var tokenCentral = postman.getResponseHeader(\"X-Central-Auth-Token\");",
+									"var urlCentral = postman.getResponseHeader(\"X-Central-Domain\");",
+									"",
+									"var tokenCloud = postman.getResponseHeader(\"X-Cloud-Auth-Token\")",
+									"",
+									"var tokenPlay = postman.getResponseHeader(\"X-Play-Auth-Token\");",
+									"var urlPlay = postman.getResponseHeader(\"X-Play-Domain\");",
+									"",
+									"postman.setEnvironmentVariable(\"token_central\",tokenCentral);",
+									"postman.setEnvironmentVariable(\"url_central\",urlCentral);",
+									"",
+									"postman.setEnvironmentVariable(\"token_play\",tokenPlay);",
+									"postman.setEnvironmentVariable(\"url_play\",urlPlay);",
+									"",
+									"postman.setEnvironmentVariable(\"token_cloud\", tokenCloud);",
+									"",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{pwd}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Common-End-Point",
+								"value": "true"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "android_version",
+									"value": "2.5.6",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url_cloud}}public/login",
+							"host": [
+								"{{url_cloud}}public"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "login con credenciales de un usuario normal.\nUsuario sin cursos"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4642bd65-2778-4152-bd63-0773b59a4f07",
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//tests[\"Length of objects in json\"] = jsonData.length >= 0;",
+									"",
+									"var jsonPlay = jsonData[\"lPlay\"];",
+									"var company_id = jsonPlay[\"companyId\"];",
+									"var student_id = jsonPlay[\"id\"];",
+									"",
+									"postman.setEnvironmentVariable(\"play_company_id\",company_id);",
+									"postman.setEnvironmentVariable(\"play_student_id\", student_id);",
+									"",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Cloud-Auth-Token",
+								"value": "{{token_cloud}}"
+							},
+							{
+								"key": "X-Cloud-Language",
+								"value": "{{language}}"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{url_cloud}}{{version}}/public/getUserDetails?platforms=lplay,lcentral,lcloud,lsocial",
+							"host": [
+								"{{url_cloud}}{{version}}"
+							],
+							"path": [
+								"public",
+								"getUserDetails"
+							],
+							"query": [
+								{
+									"key": "platforms",
+									"value": "lplay,lcentral,lcloud,lsocial"
+								}
+							]
+						},
+						"description": "Obtiene los datos de usuario"
+					},
+					"response": []
+				},
+				{
+					"name": "Scoreboard User Global position",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0b221824-1aa3-4378-a07f-426778689f97",
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Response time is less than \" + postman.getEnvironmentVariable(\"max_response_time\")/1000 + \"s\"] = ",
+									"    responseTime < postman.getEnvironmentVariable(\"max_response_time\");",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"var schema = {",
+									"    \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+									"    \"description\": \"Core schema meta-schema\",",
+									"    ",
+									"        \"type\" : \"object\",",
+									"        \"properties\" : {",
+									"            \"code\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"position\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"index\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"points\" : {",
+									"                \"anyOf\": [",
+									"                    { \"type\": \"integer\" },",
+									"                    { \"type\": \"float\" }",
+									"                ]",
+									"            }",
+									"            ",
+									"        }",
+									"    ",
+									"};",
+									"",
+									"tests[\"Valid Json response\"] = tv4.validate(jsonData, schema);",
+									"console.log(\"Validation failed: \", tv4.error);",
+									"",
+									"postman.setEnvironmentVariable(\"play_user_global_position\",jsonData[\"position\"]);",
+									"postman.setEnvironmentVariable(\"play_user_global_index\",jsonData[\"index\"]);",
+									"postman.setEnvironmentVariable(\"play_user_global_points\",jsonData[\"points\"]);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_play}}"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{url_play}}/api/dashboard/companies/{{play_company_id}}/user/{{play_student_id}}/ranking",
+							"host": [
+								"{{url_play}}"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"companies",
+								"{{play_company_id}}",
+								"user",
+								"{{play_student_id}}",
+								"ranking"
+							]
+						},
+						"description": "Devuelve la posición global del usuario en el ranking"
+					},
+					"response": []
+				},
+				{
+					"name": "Scoreboard User Global List",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ca3d9e23-29db-4f4c-bc83-565713a81463",
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Response time is less than \" + postman.getEnvironmentVariable(\"max_response_time\")/1000 + \"s\"] = ",
+									"    responseTime < postman.getEnvironmentVariable(\"max_response_time\");",
+									"tests[\"Status code is 200\"] = responseCode.code === 200;",
+									"",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"//tests[\"Length of objects in json\"] = jsonData.length >= 0;",
+									"//tests[\"Primer elemento tiene id 761\"] = jsonData[0].id == 761;",
+									"//tests[\"Primer elemento tiene nombre valido\"] = jsonData[0].name == \"Course in plan\";",
+									"//tests[\"Primer elemento pertenece a un plan\"] = (jsonData[0].plan).id == 759;",
+									"//tests[\"Primer elemento pertenece a un plan con nombre válido\"] = (jsonData[0].plan).name == \"Boost your career\";",
+									"//tests[\"Primer elemento tiene sesiones\"] = (jsonData[0].sessions).length >= 2;",
+									"",
+									"var schema = {",
+									"    \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+									"    \"description\": \"Core schema meta-schema\",",
+									"    ",
+									"        \"type\" : \"object\",",
+									"        \"properties\" : {",
+									"            \"total\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"current_page\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"last_page\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"from\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"to\" : {",
+									"                \"type\" : \"integer\"",
+									"            },",
+									"            \"data\" : {",
+									"                \"type\" : \"array\",",
+									"                \"items\" : {",
+									"                    \"type\": \"object\",",
+									"                    \"properties\" : {",
+									"                        \"_id\": {",
+									"                            \"type\":\"string\",",
+									"                            \"uniqueItems\": true",
+									"                        },",
+									"                        \"username\": {",
+									"                            \"type\": \"string\",",
+									"                            \"uniqueItems\": true",
+									"                        },",
+									"                        \"name\" : { \"type\": \"string\" },",
+									"                        \"firstname\" : { \"type\": \"string\" },",
+									"                        \"lastname\" : { \"type\": \"string\" },",
+									"                        \"position\" : {",
+									"                            \"type\" : \"integer\"",
+									"                        },",
+									"                        \"index\" : {",
+									"                            \"type\" : \"integer\",",
+									"                            \"uniqueItems\": true",
+									"                        },",
+									"                        \"points\" : {",
+									"                            \"anyOf\": [",
+									"                                { \"type\": \"integer\" },",
+									"                                { \"type\": \"float\" }",
+									"                            ]",
+									"                        }",
+									"                    }",
+									"                }",
+									"            }",
+									"            ",
+									"        }",
+									"    ",
+									"};",
+									"",
+									"tests[\"Valid Json response\"] = tv4.validate(jsonData, schema);",
+									"console.log(\"Validation failed: \", tv4.error);",
+									"",
+									"//",
+									"var previous_index = parseInt( postman.getEnvironmentVariable(\"play_previous_index\") );",
+									"var jsonRanking = jsonData[\"data\"];",
+									"//var i = jsonRanking.length -1;",
+									"//var rankingUser = jsonRanking[i];",
+									"",
+									"var biggerInRanking = 0;",
+									"jsonRanking.forEach(function(ranking){",
+									"    var index = parseInt(ranking[\"index\"]);",
+									"    if(index > biggerInRanking) {",
+									"       biggerInRanking = index; ",
+									"    } else {",
+									"        tests[\"Index no correlativos \" + index + \"/ Bigger Index \" + biggerInRanking] = ( index > biggerInRanking );",
+									"    }",
+									"    ",
+									"});",
+									"",
+									"console.log(previous_index);",
+									"",
+									"if(previous_index == -1) {",
+									"    previous_index = parseInt(biggerInRanking);",
+									"    ",
+									"    console.log(\"PAGE: \" + postman.getEnvironmentVariable(\"play_page\") );",
+									"    console.log(\"Bigger in Ranking: \" + biggerInRanking);",
+									"} else {",
+									"    var index = parseInt(jsonRanking[0][\"index\"]);",
+									"    console.log(\"PAGE: \" + postman.getEnvironmentVariable(\"play_page\") );",
+									"    console.log(jsonRanking[0]);",
+									"    console.log(biggerInRanking);",
+									"    ",
+									"    tests[\"Index \" + index + \"/ Previous Index \" + previous_index] = ( (previous_index +1) == index );",
+									"    ",
+									"    previous_index = biggerInRanking;",
+									"}",
+									"",
+									"postman.setEnvironmentVariable(\"play_previous_index\", previous_index);",
+									"",
+									"",
+									"",
+									"//Se verifica en que página estamos para saber si llamammos otra vez al servicio web",
+									"var play_page = postman.getEnvironmentVariable(\"play_page\");",
+									"var current_page = parseInt(jsonData[\"current_page\"]);",
+									"var last_page = parseInt(jsonData[\"last_page\"]);",
+									"",
+									"if(current_page < last_page) {",
+									"    play_page = parseInt(play_page) + 1;",
+									"    postman.setEnvironmentVariable(\"play_page\", play_page);",
+									"    postman.setNextRequest(\"Scoreboard User Global List\");",
+									"} else {",
+									"    //Reset de variables",
+									"    postman.setEnvironmentVariable(\"play_page\", 1);",
+									"    postman.setEnvironmentVariable(\"play_previous_index\", -1);",
+									"}",
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token_play}}"
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "{{url_play}}/api/dashboard/companies/{{play_company_id}}/users/?page=2&limit={{play_limit}}",
+							"host": [
+								"{{url_play}}"
+							],
+							"path": [
+								"api",
+								"dashboard",
+								"companies",
+								"{{play_company_id}}",
+								"users",
+								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "limit",
+									"value": "{{play_limit}}"
+								}
+							]
+						},
+						"description": "Devuelve un listado de los usuarios en el ranking global"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "sprints enrolled",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "82bef664-caa0-4fd7-b829-d9ca9eb8beea",
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Response time is less than \" + postman.getEnvironmentVariable(\"max_response_time\")/1000 + \"s\"] = ",
+							"    responseTime < postman.getEnvironmentVariable(\"max_response_time\");",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"",
+							"var schema = {",
+							"    \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+							"    \"description\": \"Core schema meta-schema\",",
+							"    ",
+							"        \"type\" : \"object\",",
+							"        \"properties\" : {",
+							"            \"total\" : {",
+							"                \"type\" : \"integer\"",
+							"            },",
+							"            \"current_page\" : {",
+							"                \"type\" : \"integer\"",
+							"            },",
+							"            \"last_page\" : {",
+							"                \"type\" : \"integer\"",
+							"            },",
+							"            \"from\" : {",
+							"                \"type\" : \"integer\"",
+							"            },",
+							"            \"to\" : {",
+							"                \"type\" : \"integer\"",
+							"            },",
+							"            \"data\" : {",
+							"                \"type\" : \"array\",",
+							"                \"items\" : {",
+							"                    \"type\": \"object\",",
+							"                    \"properties\" : {",
+							"                        \"_id\": {",
+							"                            \"type\":\"string\",",
+							"                            \"uniqueItems\": true",
+							"                        },",
+							"                        \"name\" : { \"type\": \"string\" },",
+							"                        \"urlLaunchMobile\" : {\"type\" : \"string\"},",
+							"                        \"mandatory\" :  { \"type\": \"boolean\" }",
+							"                           ",
+							"                       ",
+							"                    }",
+							"                }",
+							"            }",
+							"        }",
+							"    ",
+							"};",
+							"",
+							"tests[\"Valid Json response\"] = tv4.validate(jsonData, schema);",
+							"console.log(\"Validation failed: \", tv4.error);",
+							"",
+							"var ids = [];",
+							"",
+							"var tmp_ids = postman.getEnvironmentVariable(\"sprint_ids\");",
+							"if(tmp_ids != null || tmp_ids != \"\") {",
+							"    tmp_ids = tmp_ids.split(\",\");",
+							"    ",
+							"    tmp_ids.forEach(function(id) {",
+							"        ids.push(id);",
+							"    });",
+							"}",
+							"",
+							"",
+							"",
+							"var json = jsonData[\"data\"];",
+							"json.forEach(function(sprint) {",
+							"    var id = sprint[\"_id\"];",
+							"    console.log(\"ID: \" + id);",
+							"    ids.push(id);",
+							"});",
+							"",
+							"postman.setEnvironmentVariable(\"sprint_ids\", ids);",
+							"",
+							"//Se verifica en que página estamos para saber si llamammos otra vez al servicio web",
+							"var play_page = postman.getEnvironmentVariable(\"play_page\");",
+							"var current_page = parseInt(jsonData[\"current_page\"]);",
+							"var last_page = parseInt(jsonData[\"last_page\"]);",
+							"",
+							"if(current_page < last_page) {",
+							"    play_page = parseInt(play_page) + 1;",
+							"    postman.setEnvironmentVariable(\"play_page\", play_page);",
+							"    postman.setNextRequest(\"sprints enrolled\");",
+							"} else {",
+							"    //Reset de variables",
+							"    postman.setEnvironmentVariable(\"play_page\", 1);",
+							"    postman.setEnvironmentVariable(\"play_previous_index\", -1);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token_play}}"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "{{url_play}}/api/v1/companies/{{play_company_id}}/stories/enrolled?access_token={{token_play}}&limit={{play_limit}}&page={{play_page}}&search=&sort=end:asc&paginator=true",
+					"host": [
+						"{{url_play}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"companies",
+						"{{play_company_id}}",
+						"stories",
+						"enrolled"
+					],
+					"query": [
+						{
+							"key": "access_token",
+							"value": "{{token_play}}"
+						},
+						{
+							"key": "limit",
+							"value": "{{play_limit}}"
+						},
+						{
+							"key": "page",
+							"value": "{{play_page}}"
+						},
+						{
+							"key": "search",
+							"value": ""
+						},
+						{
+							"key": "sort",
+							"value": "end:asc"
+						},
+						{
+							"key": "paginator",
+							"value": "true"
+						}
+					]
+				},
+				"description": "Obtiene los sprints en los que estoy inscrito"
+			},
+			"response": []
+		}
+	]
+}
